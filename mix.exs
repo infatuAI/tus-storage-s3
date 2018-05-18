@@ -23,7 +23,7 @@ defmodule Tus.Storage.S3.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:tus, "~> 0.1.1"},
+      {:tus, "~> 0.1.2"},
       {:ex_aws, "~> 2.0"},
       {:ex_aws_s3, "~> 2.0"},
       {:hackney, "~> 1.9"},

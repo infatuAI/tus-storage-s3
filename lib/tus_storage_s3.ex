@@ -82,7 +82,7 @@ defmodule Tus.Storage.S3 do
     file.offset + part_size >= file.size
   end
 
-  defp part_too_small?(config, file, part_size) do
+  defp part_too_small?(file, config, part_size) do
     if last_part?(file, part_size) do
       false
     else
@@ -119,26 +119,39 @@ defmodule Tus.Storage.S3 do
 
   That limit can be customized with the config option `s3_min_part_size`.
   """
-  def append(file, body, config) do
+  def append(file, config, body) do
     part_size = byte_size(body)
 
-    if part_too_small?(config, file, part_size) do
+    if part_too_small?(file, config, part_size) do
       :too_small
     else
-      append_data(file, body, config, part_size)
+      append_data(file, config, body, part_size)
     end
   end
 
-  defp append_data(file, body, config, part_size) do
-    part_number = div(file.offset, min_part_size(config)) + 1
+  defp append_data(file, config, body, part_size) do
+    part_id = div(file.offset, min_part_size(config)) + 1
 
     config.s3_bucket
-    |> S3.upload_part(file.path, file.upload_id, part_number, body, "Content-Length": part_size)
+    |> S3.upload_part(file.path, file.upload_id, part_id, body, "Content-Length": part_size)
     |> ExAws.request(host: host(config))
     |> case do
-      {:ok, _response} -> :ok
-      error -> {:error, error}
+      {:ok, _response} ->
+        file.parts = file.parts ++ [part_id]
+        {:ok, file}
+
+      error ->
+        {:error, error}
     end
+  end
+
+  @doc """
+  Finish a Multipart Upload
+  """
+  def complete_upload(file, config) do
+    ""
+    |> ExAws.S3.complete_multipart_upload(file.path, file.upload_id, file.parts)
+    |> ExAws.request(host: host(config))
   end
 
   @doc """
