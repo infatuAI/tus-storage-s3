@@ -54,7 +54,7 @@ defmodule Tus.Storage.S3 do
   """
   alias ExAws.S3
 
-  @default_host "https://s3.amazonaws.com/"
+  @default_host "s3.amazonaws.com"
   @default_min_part_size 5 * 1024 * 1024
 
   defp file_path(config, file) do
@@ -62,11 +62,12 @@ defmodule Tus.Storage.S3 do
       [
         config
         |> Map.get(:s3_prefix, "")
-        |> String.trim_trailing("/"),
+        |> String.trim("/"),
         file.uid
       ],
       "/"
     )
+    |> String.trim("/")
   end
 
   defp host(config) do
@@ -102,11 +103,7 @@ defmodule Tus.Storage.S3 do
     |> S3.Upload.initialize(host: host)
     |> case do
       {:ok, rs} ->
-        %Tus.File{
-          file
-          | upload_id: rs.upload_id,
-            path: file_path
-        }
+        %Tus.File{file | upload_id: rs.upload_id, path: file_path}
 
       err ->
         {:error, err}
@@ -117,8 +114,9 @@ defmodule Tus.Storage.S3 do
   Add data to an already started [Multipart Upload](http://docs.aws.amazon.com/AmazonS3/latest/dev/uploadobjusingmpu.html)
   (identified by `file.upload_id`).
 
-  Amazon sets the restrictions than the minimum size of a single part (except the last)
-  must be at least 5MB. If the data is smaller than that, returns `:too_small`.
+  Amazon restrict the minimum size of a single part (except the last one) to
+  at least 5MB. If the data is smaller than that, this function returns `:too_small`.
+
   That limit can be customized with the config option `s3_min_part_size`.
   """
   def append(file, body, config) do
