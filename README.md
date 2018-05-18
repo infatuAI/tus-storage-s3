@@ -1,16 +1,15 @@
 # Tus.Storage.S3
 
-A	plugin for the Tus (https://github.com/jpscaletti/tus) package.
-Provides a storage backend based on AWS S3 or compatible servers.
+S3 (or compatible) storage backend for the [Tus server](https://hex.pm/packages/tus)
 
 ## Installation
 
-The package can be installed by adding `tus_storage_s3` to your list of dependencies in `mix.exs`:
+The package can be installed by adding `tus_cache_redis` to your list of dependencies in `mix.exs`:
 
 ```elixir
 def deps do
   [
-    {:tus, "~> 0.1.0"},
+    {:tus, "~> 0.1.1"},
     {:tus_storage_s3, "~> 0.1.0"},
   ]
 end
@@ -18,22 +17,12 @@ end
 
 ## Configuration
 
-- `storage`:
-	Set it as `Tus.Storage.S3`.
+- `storage`: Set it as `Tus.Storage.S3`.
+- `s3_bucket`: The name of your bucket
+- `s3_host`: Optional. "https://s3.amazonaws.com" by default
+- `s3_prefix`: Optional. Prefix added to all files. Empty by default
 
-- `s3_host`:
-  Optional — Amazon S3 host (https://s3.amazonaws.com) will be used by default.
-
-- `s3_bucket`:
-  Name of the bucket were the uploaded files'll be stored
-
-- `s3_base_path`:
-  Optipnal – This allows you to store the files in a "subfolder" of the bucket.
-
-- `base_url`:
-  If not defined, this'll be `s3_host/s3_bucket`
-
-In order to function properly, the user accessing the bucket must have at least the
+In order to allow this backend to function properly, the user accessing the bucket must have at least the
 following AWS IAM policy permissions for the bucket and all of its subresources:
 
 ```
@@ -44,7 +33,7 @@ s3:ListMultipartUploadParts
 s3:PutObject
 ```
 
-Tus.Storage.S3 uses the ExAWS package, so you'll need to add valid AWS keys to its config.
+Furthermore, this uses the ExAWS package, so you'll need to add valid AWS keys to its config.
 
 ```elixir
 config :ex_aws,
