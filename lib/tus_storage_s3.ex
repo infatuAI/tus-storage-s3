@@ -17,9 +17,10 @@ defmodule Tus.Storage.S3 do
 
   ## Configuration
 
-  - `storage`: Set it as `Tus.Storage.S3`.
+  - `storage`: Set it as `Tus.Storage.S3`
   - `s3_bucket`: The name of your bucket
-  - `s3_host`: Optional. "https://s3.amazonaws.com" by default
+
+  - `s3_host`: Optional. "s3.amazonaws.com" by default
   - `s3_prefix`: Optional. Prefix added to all files. Empty by default
   - `s3_min_part_size`: The minimum size of a single part (except the last).
     In Amazon S3 this is 5MB. For other, compatible services, you might want/need to
@@ -76,9 +77,17 @@ defmodule Tus.Storage.S3 do
     config |> Map.get(:s3_min_part_size, @default_min_part_size)
   end
 
+  defp last_part?(file, part_size) do
+    file.offset + part_size >= file.size
+  end
+
   defp part_too_small?(config, file, part_size) do
-    min_size = min_part_size(config)
-    part_size < min_size && file.offset + min_size > file.size
+    if last_part?(file, part_size) do
+      false
+    else
+      min_size = min_part_size(config)
+      part_size < min_size && file.offset + min_size > file.size
+    end
   end
 
   @doc """
