@@ -136,8 +136,9 @@ defmodule Tus.Storage.S3 do
     |> S3.upload_part(file.path, file.upload_id, part_id, body, "Content-Length": part_size)
     |> ExAws.request(host: host(config))
     |> case do
-      {:ok, _response} ->
-        file.parts = file.parts ++ [part_id]
+      {:ok, %{headers: headers}} ->
+        {_, etag} = Enum.find(headers, fn {k, _v} -> String.downcase(k) == "etag" end)
+        file = %Tus.File{file | parts: file.parts ++ [{part_id, etag}]}
         {:ok, file}
 
       error ->
@@ -149,7 +150,7 @@ defmodule Tus.Storage.S3 do
   Finish a Multipart Upload
   """
   def complete_upload(file, config) do
-    ""
+    config.s3_bucket
     |> ExAws.S3.complete_multipart_upload(file.path, file.upload_id, file.parts)
     |> ExAws.request(host: host(config))
   end
