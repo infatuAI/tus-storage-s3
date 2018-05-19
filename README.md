@@ -1,6 +1,6 @@
 # Tus.Storage.S3
 
-S3 (or compatible) storage backend for the [Tus server](https://hex.pm/packages/tus)
+Amazon S3 (or compatible) storage backend for the [Tus server](https://hex.pm/packages/tus)
 
 Uses the [ExAWS.S3](https://hex.pm/packages/ex_aws_s3) package for interfacing with Amazon S3.
 
